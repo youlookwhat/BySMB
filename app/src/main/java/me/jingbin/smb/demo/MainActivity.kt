@@ -43,6 +43,11 @@ class MainActivity : AppCompatActivity() {
                     Log.e("handleMessage", msgtmp.toString())
                     tv_log.text = msgtmp.toString()
                     progressDialog.hide()
+                    if (msgtmp.toString().contains("连接失败")) {
+                        Toast.makeText(instance, "连接失败", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(instance, msgtmp.toString(), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
