@@ -1,17 +1,20 @@
 package me.jingbin.smb.demo
 
+import android.content.Context
 import androidx.multidex.MultiDexApplication
 import me.jingbin.smb.BySMB
 
-class App: MultiDexApplication() {
+class App : MultiDexApplication() {
+
+    companion object {
+        lateinit var instance: Context
+    }
 
     override fun onCreate() {
         super.onCreate()
-//        System.setProperty("jcifs.smb.client.dfs.disabled", "true")
-//        System.setProperty("jcifs.smb.client.soTimeout", "1000000")
-//        System.setProperty("jcifs.smb.client.responseTimeout", "30000")
-//        BasicConfigurator.configure()
+        instance = this
 
-        BySMB.init()
+        // 初始化
+        BySMB.initProperty()
     }
 }

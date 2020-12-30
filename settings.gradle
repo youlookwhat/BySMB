@@ -1,4 +1,3 @@
 include ':smb'
-include ':app:smb'
 include ':app'
 rootProject.name = "BySMB"

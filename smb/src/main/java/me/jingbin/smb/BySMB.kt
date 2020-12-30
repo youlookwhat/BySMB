@@ -22,33 +22,35 @@ open class BySMB(val builder: Builder) {
             .withTimeout(builder.readTimeOut, TimeUnit.SECONDS)
             // 设置写入超时
             .withWriteTimeout(builder.writeTimeOut, TimeUnit.SECONDS)
-            //
+            // 设置Socket链接超时
             .withSoTimeout(builder.soTimeOut, TimeUnit.SECONDS)
             .build()
 
         val client = SMBClient(config)
-        val authenticationContext =
-            AuthenticationContext(builder.username, builder.password.toCharArray(), null)
         val connect = client.connect(builder.ip)
-        val session = connect.authenticate(authenticationContext) ?: throw Exception("请检查配置")
+        val authContext =
+            AuthenticationContext(builder.username, builder.password.toCharArray(), "DOMAIN")
+        val session = connect.authenticate(authContext)
         connectShare = session.connectShare(builder.folderName) as DiskShare?
         if (connectShare == null) throw Exception("请检查文件夹名称")
 
     }
 
     /**
-     * 想共享文件里写文件
+     * 向共享文件里写文件
      */
     fun writeToFile(inputFile: File?, callback: OnUploadFileCallback) {
         if (connectShare == null) {
             callback.onFailure("配置错误")
+            return
         }
         if (inputFile == null || !inputFile.exists()) {
             callback.onFailure("文件不存在")
+            return
         }
         val inputStream = BufferedInputStream(FileInputStream(inputFile))
         val openFile = connectShare!!.openFile(
-            inputFile?.name,
+            inputFile.name,
             EnumSet.of(AccessMask.GENERIC_WRITE), null,
             SMB2ShareAccess.ALL,
             SMB2CreateDisposition.FILE_CREATE, null
@@ -120,13 +122,15 @@ open class BySMB(val builder: Builder) {
 
             fun build(): BySMB? {
                 val bySMB = BySMB(this)
-                return try {
-                    bySMB.init()
-                    bySMB
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
+                bySMB.init()
+                return bySMB
+//                return try {
+//                    bySMB.init()
+//                    bySMB
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                    null
+//                }
             }
         }
 
@@ -134,28 +138,12 @@ open class BySMB(val builder: Builder) {
             return Builder()
         }
 
-        fun init(){
+        fun initProperty(soTimeout: String = "60000", responseTimeout: String = "30000") {
             System.setProperty("jcifs.smb.client.dfs.disabled", "true")
-            System.setProperty("jcifs.smb.client.soTimeout", "1000000")
-            System.setProperty("jcifs.smb.client.responseTimeout", "30000")
+            System.setProperty("jcifs.smb.client.soTimeout", soTimeout)
+            System.setProperty("jcifs.smb.client.responseTimeout", responseTimeout)
             BasicConfigurator.configure()
         }
-
-        /**在本地生成文件*/
-//        fun writeStringToFile(context: Activity, content: String, writeFileName: String): File? {
-//            var file: File? = null
-//            try {
-//                file = File(context.filesDir, writeFileName)
-//                if (!file.exists()) {
-//                    file.parentFile?.mkdirs()
-//                }
-//                val printStream = PrintStream(FileOutputStream(file))
-//                printStream.println(content)
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//            return file
-//        }
     }
 
 }

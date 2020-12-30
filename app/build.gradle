@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    // 获取View id
+    id  'kotlin-android-extensions'
 }
 
 android {
