@@ -12,7 +12,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-open class BySMB(val builder: Builder) {
+class BySMB(private val builder: Builder) {
 
     var connectShare: DiskShare? = null
 
@@ -29,11 +29,10 @@ open class BySMB(val builder: Builder) {
         val client = SMBClient(config)
         val connect = client.connect(builder.ip)
         val authContext =
-            AuthenticationContext(builder.username, builder.password.toCharArray(), "DOMAIN")
+            AuthenticationContext(builder.username, builder.password.toCharArray(), null)
         val session = connect.authenticate(authContext)
         connectShare = session.connectShare(builder.folderName) as DiskShare?
         if (connectShare == null) throw Exception("请检查文件夹名称")
-
     }
 
     /**
@@ -48,15 +47,18 @@ open class BySMB(val builder: Builder) {
             callback.onFailure("文件不存在")
             return
         }
-        val inputStream = BufferedInputStream(FileInputStream(inputFile))
-        val openFile = connectShare!!.openFile(
-            inputFile.name,
-            EnumSet.of(AccessMask.GENERIC_WRITE), null,
-            SMB2ShareAccess.ALL,
-            SMB2CreateDisposition.FILE_CREATE, null
-        )
-        val outputStream = BufferedOutputStream(openFile.outputStream)
+        var inputStream: BufferedInputStream? = null
+        var outputStream: BufferedOutputStream? = null
         try {
+            inputStream = BufferedInputStream(FileInputStream(inputFile))
+            val openFile = connectShare!!.openFile(
+                inputFile.name,
+                EnumSet.of(AccessMask.GENERIC_WRITE), null,
+                SMB2ShareAccess.ALL,
+                SMB2CreateDisposition.FILE_CREATE, null
+            )
+            outputStream = BufferedOutputStream(openFile.outputStream)
+
             val buffer = ByteArray(4096)
             var len = 0
             // 读取长度
@@ -64,10 +66,13 @@ open class BySMB(val builder: Builder) {
                 len = inputStream.read(buffer, 0, buffer.size)
                 outputStream.write(buffer, 0, len)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            callback.onFailure(e.message ?: "上传失败")
         } finally {
             try {
-                outputStream.flush()
-                inputStream.close()
+                outputStream?.flush()
+                inputStream?.close()
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
                 callback.onFailure(e.message ?: "上传失败")
@@ -101,7 +106,7 @@ open class BySMB(val builder: Builder) {
                 return this
             }
 
-            /**@param soTimeOut Socket超时，单位秒 默认0秒*/
+            /**@param soTimeOut Socket超时时间，单位秒 默认0秒*/
             fun setSoTimeOut(soTimeOut: Long): Builder {
                 this.soTimeOut = soTimeOut
                 return this
@@ -124,13 +129,6 @@ open class BySMB(val builder: Builder) {
                 val bySMB = BySMB(this)
                 bySMB.init()
                 return bySMB
-//                return try {
-//                    bySMB.init()
-//                    bySMB
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                    null
-//                }
             }
         }
 
@@ -138,6 +136,7 @@ open class BySMB(val builder: Builder) {
             return Builder()
         }
 
+        /**需要先初始化*/
         fun initProperty(soTimeout: String = "60000", responseTimeout: String = "30000") {
             System.setProperty("jcifs.smb.client.dfs.disabled", "true")
             System.setProperty("jcifs.smb.client.soTimeout", soTimeout)

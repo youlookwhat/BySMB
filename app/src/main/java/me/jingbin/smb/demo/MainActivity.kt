@@ -65,50 +65,50 @@ class MainActivity : AppCompatActivity() {
         /**
          * 异步线程
          */
-        Thread(object : Runnable {
-            override fun run() {
+        Thread(Runnable {
+            try {
 
-                try {
+                val bySmb = BySMB.with()
+                    .setConfig(
+                        et_ip.text.toString(),
+                        et_username.text.toString(),
+                        et_password.text.toString(),
+                        et_foldName.text.toString()
+                    )
+                    .setReadTimeOut(60)
+                    .setSoTimeOut(180)
+                    .build()
 
-                    val bySmb = BySMB.with()
-                        .setConfig(
-                            et_ip.text.toString(), et_username.text.toString(),
-                            et_password.text.toString(), et_foldName.text.toString()
-                        )
-//                        .setConfig("192.168.40.119", "景彬", "bevol", "share")
-                        .setReadTimeOut(60)
-                        .setSoTimeOut(180)
-                        .build()
+                val writeStringToFile = writeStringToFile(
+                    instance,
+                    et_content.text.toString(),
+                    et_fileName.text.toString()
+                )
+                bySmb?.writeToFile(writeStringToFile, object : OnUploadFileCallback {
 
-                    val writeStringToFile = writeStringToFile(instance, "123", "helloSmb.txt");
-                    bySmb?.writeToFile(writeStringToFile, object : OnUploadFileCallback {
+                    override fun onSuccess() {
+                        // 成功
+                        val msg = Message.obtain()
+                        msg.obj = "成功"
+                        //返回主线程
+                        handle.sendMessage(msg)
+                    }
 
-                        override fun onSuccess() {
-                            // 成功
-                            val msg = Message.obtain()
-                            msg.obj = "成功"
-                            //返回主线程
-                            handle.sendMessage(msg)
+                    override fun onFailure(message: String) {
+                        Log.e("onFailure", message)
+                        val msg = Message.obtain()
+                        msg.obj = message
+                        //返回主线程
+                        handle.sendMessage(msg)
+                    }
 
-                        }
-
-                        override fun onFailure(message: String) {
-                            Log.e("onFailure", message)
-                            val msg = Message.obtain()
-                            msg.obj = message
-                            //返回主线程
-                            handle.sendMessage(msg)
-                        }
-
-                    })
-                } catch (e: java.lang.Exception) {
-                    e.printStackTrace()
-                    val msg = Message.obtain()
-                    msg.obj = "连接失败： " + e.message
-                    //返回主线程
-                    handle.sendMessage(msg)
-                }
-
+                })
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                val msg = Message.obtain()
+                msg.obj = "连接失败： " + e.message
+                //返回主线程
+                handle.sendMessage(msg)
             }
         }).start()
     }
