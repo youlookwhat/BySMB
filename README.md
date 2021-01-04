@@ -13,11 +13,11 @@
 #### 1.代码引入
 ```kotlin
 allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 
 dependencies {
     implementation 'com.github.youlookwhat:BySMB:1.0.0'
