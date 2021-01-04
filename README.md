@@ -1,5 +1,4 @@
-# BySMB
-[![](https://jitpack.io/v/youlookwhat/BySMB.svg)](https://jitpack.io/#youlookwhat/BySMB) <img width="119" height=“19” src="https://www.cleveroad.com/public/comercial/label-android.svg"/>
+# BySMB [![](https://jitpack.io/v/youlookwhat/BySMB.svg)](https://jitpack.io/#youlookwhat/BySMB)
 
 通过 SMB(Server Message Block)，实现设备(Android)给电脑传输数据。
 
@@ -11,17 +10,30 @@
  	-  window 电脑 文件夹-共享-高级共享-权限-打开更改权限
 
 ### 代码配置
-#### 1.开启联网权限
+#### 1.代码引入
+```kotlin
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+dependencies {
+    implementation 'com.github.youlookwhat:BySMB:1.0.0'
+}
+```
+#### 2.开启联网权限
 ``` kotlon
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-#### 2.需要先初始化
+#### 3.需要先初始化
 ``` kotlon
 BySMB.initProperty()
 ```
 
-#### 3.初始化及上传（注意在子线程）
+#### 4.参数配置及上传（注意在子线程）
 
 ```kotlin
 try {
