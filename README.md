@@ -1,4 +1,6 @@
 # BySMB
+[![](https://jitpack.io/v/youlookwhat/BySMB.svg)](https://jitpack.io/#youlookwhat/BySMB) <img width="119" height=“19” src="https://www.cleveroad.com/public/comercial/label-android.svg"/>
+
 通过 SMB(Server Message Block)，实现设备(Android)给电脑传输数据。
 
 ### 硬件条件
@@ -23,7 +25,7 @@ BySMB.initProperty()
 
 ```kotlin
 try {
-	// 初始化
+    // 初始化
     val bySmb = BySMB.with()
         .setConfig(
             et_ip.text.toString(),       // 电脑ip
@@ -35,7 +37,7 @@ try {
         .setSoTimeOut(180)
         .build()
 
-	// 生成文件 File
+    // 生成文件 File
     val writeStringToFile = writeStringToFile(
         instance,
         et_content.text.toString(),
