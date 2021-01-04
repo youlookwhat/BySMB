@@ -8,7 +8,10 @@ import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.share.DiskShare
 import org.apache.log4j.BasicConfigurator
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileInputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -59,13 +62,18 @@ class BySMB(private val builder: Builder) {
             )
             outputStream = BufferedOutputStream(openFile.outputStream)
 
-            val buffer = ByteArray(4096)
-            var len = 0
-            // 读取长度
-            while (len != -1) {
+            val buffer = ByteArray(1024)
+            var len: Int
+            while (true) {
+                // 读取长度
                 len = inputStream.read(buffer, 0, buffer.size)
-                outputStream.write(buffer, 0, len)
+                if (len != -1) {
+                    outputStream.write(buffer, 0, len)
+                } else {
+                    break
+                }
             }
+            callback.onSuccess()
         } catch (e: Exception) {
             e.printStackTrace()
             callback.onFailure(e.message ?: "上传失败")
@@ -75,9 +83,7 @@ class BySMB(private val builder: Builder) {
                 inputStream?.close()
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
-                callback.onFailure(e.message ?: "上传失败")
             }
-            callback.onSuccess()
         }
     }
 
