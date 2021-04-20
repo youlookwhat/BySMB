@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import me.jingbin.smb.BySMB
+import me.jingbin.smb.OnReadFileListNameCallback
 import me.jingbin.smb.OnUploadFileCallback
 import java.io.File
 import java.io.FileOutputStream
@@ -31,15 +32,25 @@ class MainActivity : AppCompatActivity() {
             override fun handleMessage(msg: Message) {
                 val activity = mWeakReference?.get()
                 activity?.let {
-                    val msgContent = msg.obj
-                    Log.e("handleMessage", msgContent.toString())
-                    activity.tv_log.text = msgContent.toString()
                     activity.progressDialog?.hide()
-                    if (msgContent.toString().contains("连接失败")) {
-                        Toast.makeText(activity.instance, "连接失败", Toast.LENGTH_SHORT).show()
+                    if (msg.what == 1) {
+                        // 读取文件列表成功
+                        val msgContent = msg.obj
+                        val list = msgContent as List<String>
+                        activity.tv_file_list.text = list.toString()
                     } else {
-                        Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT)
-                            .show()
+                        val msgContent = msg.obj
+                        Log.e("handleMessage", msgContent.toString())
+                        activity.tv_log.text = msgContent.toString()
+                        if (msgContent.toString().contains("连接失败")) {
+                            Toast.makeText(activity.instance, "连接失败", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                activity.instance,
+                                msgContent.toString(),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             }
@@ -60,6 +71,57 @@ class MainActivity : AppCompatActivity() {
 
         handle = MyHandle(this)
         tv_send.setOnClickListener { startUpload() }
+        tv_read.setOnClickListener { startRead() }
+
+    }
+
+    /**读取文件列表*/
+    private fun startRead() {
+        if (progressDialog == null) {
+            progressDialog = ProgressDialog(this)
+            progressDialog?.setMessage("读取中...")
+        }
+        progressDialog?.show()
+        /**
+         * 异步线程
+         */
+        Thread(Runnable {
+            try {
+
+                val bySmb = BySMB.with()
+                    .setConfig(
+                        et_ip.text.toString(),
+                        et_username.text.toString(),
+                        et_password.text.toString(),
+                        et_foldName.text.toString()
+                    )
+                    .setReadTimeOut(60)
+                    .setSoTimeOut(180)
+                    .build()
+
+                bySmb?.listShareFileName(object : OnReadFileListNameCallback {
+                    override fun onSuccess(fileNameList: List<String>) {
+                        // 成功
+                        val msg = Message.obtain()
+                        msg.obj = fileNameList
+                        msg.what = 1
+                        handle.sendMessage(msg)
+                    }
+
+                    override fun onFailure(message: String) {
+                        Log.e("onFailure", message)
+                        val msg = Message.obtain()
+                        msg.obj = message
+                        handle.sendMessage(msg)
+                    }
+                })
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                val msg = Message.obtain()
+                msg.obj = "连接失败： " + e.message
+                handle.sendMessage(msg)
+            }
+        }).start()
     }
 
     private fun startUpload() {

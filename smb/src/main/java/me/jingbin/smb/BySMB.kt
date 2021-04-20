@@ -7,6 +7,7 @@ import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.share.DiskShare
+import com.hierynomus.smbj.utils.SmbFiles
 import org.apache.log4j.BasicConfigurator
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -87,6 +88,19 @@ class BySMB(private val builder: Builder) {
         }
     }
 
+    /**文件列表*/
+    fun listShareFileName(callback: OnReadFileListNameCallback) {
+        if (connectShare == null) {
+            callback.onFailure("配置错误")
+            return
+        }
+        val fileNameList = arrayListOf<String>()
+        val list = connectShare!!.list("")
+        for (information in list) {
+            fileNameList.add(information.fileName)
+        }
+        callback.onSuccess(fileNameList)
+    }
 
     companion object {
 
