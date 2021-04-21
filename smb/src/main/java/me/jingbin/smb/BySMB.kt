@@ -7,7 +7,6 @@ import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.share.DiskShare
-import com.hierynomus.smbj.utils.SmbFiles
 import org.apache.log4j.BasicConfigurator
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -18,22 +17,20 @@ import java.util.concurrent.TimeUnit
 
 class BySMB(private val builder: Builder) {
 
-    var connectShare: DiskShare? = null
-
+    private var connectShare: DiskShare? = null
     fun init() {
         val config = SmbConfig.builder()
-            // 设置读取超时
-            .withTimeout(builder.readTimeOut, TimeUnit.SECONDS)
-            // 设置写入超时
-            .withWriteTimeout(builder.writeTimeOut, TimeUnit.SECONDS)
-            // 设置Socket链接超时
-            .withSoTimeout(builder.soTimeOut, TimeUnit.SECONDS)
-            .build()
+                // 设置读取超时
+                .withTimeout(builder.readTimeOut, TimeUnit.SECONDS)
+                // 设置写入超时
+                .withWriteTimeout(builder.writeTimeOut, TimeUnit.SECONDS)
+                // 设置Socket链接超时
+                .withSoTimeout(builder.soTimeOut, TimeUnit.SECONDS)
+                .build()
 
         val client = SMBClient(config)
         val connect = client.connect(builder.ip)
-        val authContext =
-            AuthenticationContext(builder.username, builder.password.toCharArray(), null)
+        val authContext = AuthenticationContext(builder.username, builder.password.toCharArray(), null)
         val session = connect.authenticate(authContext)
         connectShare = session.connectShare(builder.folderName) as DiskShare?
         if (connectShare == null) throw Exception("请检查文件夹名称")
@@ -42,7 +39,7 @@ class BySMB(private val builder: Builder) {
     /**
      * 向共享文件里写文件
      */
-    fun writeToFile(inputFile: File?, callback: OnUploadFileCallback) {
+    fun writeToFile(inputFile: File?, callback: OnOperationFileCallback) {
         if (connectShare == null) {
             callback.onFailure("配置错误")
             return
@@ -56,10 +53,10 @@ class BySMB(private val builder: Builder) {
         try {
             inputStream = BufferedInputStream(FileInputStream(inputFile))
             val openFile = connectShare!!.openFile(
-                inputFile.name,
-                EnumSet.of(AccessMask.GENERIC_WRITE), null,
-                SMB2ShareAccess.ALL,
-                SMB2CreateDisposition.FILE_CREATE, null
+                    inputFile.name,
+                    EnumSet.of(AccessMask.GENERIC_WRITE), null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_CREATE, null
             )
             outputStream = BufferedOutputStream(openFile.outputStream)
 
@@ -88,18 +85,59 @@ class BySMB(private val builder: Builder) {
         }
     }
 
-    /**文件列表*/
+    /**
+     * 获取connectShare可以自己操作
+     * */
+    fun getConnectShare(): DiskShare? {
+        return connectShare
+    }
+
+    /**
+     * 获取当前根目录下的所有文件名
+     */
     fun listShareFileName(callback: OnReadFileListNameCallback) {
+        listShareFileName("", null, callback)
+    }
+
+    /**
+     * 文件列表
+     * @param path          路径 默认""则在当前的根目录下
+     * @param searchPattern 文件显示规则 默认null当前目录下的所有文件 示例："*.TXT"
+     */
+    fun listShareFileName(path: String = "", searchPattern: String? = null, callback: OnReadFileListNameCallback) {
         if (connectShare == null) {
             callback.onFailure("配置错误")
             return
         }
         val fileNameList = arrayListOf<String>()
-        val list = connectShare!!.list("")
-        for (information in list) {
-            fileNameList.add(information.fileName)
+        try {
+            val list = connectShare!!.list(path, searchPattern)
+            for (information in list) {
+                fileNameList.add(information.fileName)
+            }
+            callback.onSuccess(fileNameList)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            callback.onFailure(e.message ?: "获取文件名失败")
         }
-        callback.onSuccess(fileNameList)
+    }
+
+    /**
+     * 删除文件
+     * @param path 文件名全路径，在根目录直接传文件名
+     * */
+    fun deleteFile(path: String, callback: OnOperationFileCallback) {
+        if (connectShare == null) {
+            callback.onFailure("配置错误")
+            return
+        }
+        try {
+            connectShare!!.rm(path)
+            callback.onSuccess()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            callback.onFailure(e.message ?: "删除失败")
+        }
     }
 
     companion object {
@@ -132,12 +170,7 @@ class BySMB(private val builder: Builder) {
                 return this
             }
 
-            fun setConfig(
-                ip: String,
-                username: String,
-                password: String,
-                folderName: String
-            ): Builder {
+            fun setConfig(ip: String, username: String, password: String, folderName: String): Builder {
                 this.ip = ip
                 this.username = username
                 this.password = password

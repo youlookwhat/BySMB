@@ -1,7 +1,7 @@
 package me.jingbin.smb.demo
 
 import android.content.Context
-import androidx.multidex.MultiDexApplication
+import android.support.multidex.MultiDexApplication
 import me.jingbin.smb.BySMB
 
 class App : MultiDexApplication() {

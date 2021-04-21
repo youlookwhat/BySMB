@@ -1,12 +1,13 @@
 package me.jingbin.smb
 
-interface OnUploadFileCallback {
+interface OnOperationFileCallback {
 
     fun onSuccess()
     fun onFailure(message: String)
 }
 
-interface OnReadFileListNameCallback{
-    fun onSuccess(fileNameList:List<String>)
+interface OnReadFileListNameCallback {
+
+    fun onSuccess(fileNameList: List<String>)
     fun onFailure(message: String)
 }

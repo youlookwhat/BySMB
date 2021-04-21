@@ -11,7 +11,7 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import me.jingbin.smb.BySMB
 import me.jingbin.smb.OnReadFileListNameCallback
-import me.jingbin.smb.OnUploadFileCallback
+import me.jingbin.smb.OnOperationFileCallback
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintStream
@@ -26,8 +26,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         class MyHandle(activity: MainActivity) : Handler() {
 
-            private var mWeakReference: WeakReference<MainActivity>? =
-                WeakReference<MainActivity>(activity)
+            private var mWeakReference: WeakReference<MainActivity>? = WeakReference<MainActivity>(activity)
 
             override fun handleMessage(msg: Message) {
                 val activity = mWeakReference?.get()
@@ -45,11 +44,7 @@ class MainActivity : AppCompatActivity() {
                         if (msgContent.toString().contains("连接失败")) {
                             Toast.makeText(activity.instance, "连接失败", Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(
-                                activity.instance,
-                                msgContent.toString(),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -61,7 +56,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         et_ip.setText(SpUtil.getString("ip"))
         et_username.setText(SpUtil.getString("username"))
         et_password.setText(SpUtil.getString("password"))
@@ -70,16 +64,23 @@ class MainActivity : AppCompatActivity() {
         et_fileName.setText(SpUtil.getString("contentFileName"))
 
         handle = MyHandle(this)
-        tv_send.setOnClickListener { startUpload() }
-        tv_read.setOnClickListener { startRead() }
+        tv_send.setOnClickListener { operation(1) }
+        tv_read.setOnClickListener { operation(2) }
+        tv_delete.setOnClickListener { operation(3) }
 
     }
 
-    /**读取文件列表*/
-    private fun startRead() {
+    var bySmb: BySMB? = null
+
+    /**增加 查看 删除*/
+    private fun operation(state: Int) {
         if (progressDialog == null) {
             progressDialog = ProgressDialog(this)
-            progressDialog?.setMessage("读取中...")
+        }
+        when (state) {
+            1 -> progressDialog?.setMessage("上传中...")
+            2 -> progressDialog?.setMessage("读取中...")
+            3 -> progressDialog?.setMessage("删除中...")
         }
         progressDialog?.show()
         /**
@@ -87,88 +88,81 @@ class MainActivity : AppCompatActivity() {
          */
         Thread(Runnable {
             try {
+                if (bySmb == null) {
+                    bySmb = BySMB.with()
+                            .setConfig(
+                                    et_ip.text.toString(),
+                                    et_username.text.toString(),
+                                    et_password.text.toString(),
+                                    et_foldName.text.toString()
+                            )
+                            .setReadTimeOut(60)
+                            .setSoTimeOut(180)
+                            .build()
+                }
 
-                val bySmb = BySMB.with()
-                    .setConfig(
-                        et_ip.text.toString(),
-                        et_username.text.toString(),
-                        et_password.text.toString(),
-                        et_foldName.text.toString()
-                    )
-                    .setReadTimeOut(60)
-                    .setSoTimeOut(180)
-                    .build()
+                when (state) {
+                    1 -> {
+                        val writeStringToFile = writeStringToFile(
+                                instance,
+                                et_content.text.toString(),
+                                et_fileName.text.toString()
+                        )
 
-                bySmb?.listShareFileName(object : OnReadFileListNameCallback {
-                    override fun onSuccess(fileNameList: List<String>) {
-                        // 成功
-                        val msg = Message.obtain()
-                        msg.obj = fileNameList
-                        msg.what = 1
-                        handle.sendMessage(msg)
+                        bySmb?.writeToFile(writeStringToFile, object : OnOperationFileCallback {
+
+                            override fun onSuccess() {
+                                // 成功
+                                val msg = Message.obtain()
+                                msg.obj = "成功"
+                                handle.sendMessage(msg)
+                            }
+
+                            override fun onFailure(message: String) {
+                                Log.e("onFailure", message)
+                                val msg = Message.obtain()
+                                msg.obj = message
+                                handle.sendMessage(msg)
+                            }
+
+                        })
                     }
+                    2 -> {
+                        bySmb?.listShareFileName("", "*.txt", object : OnReadFileListNameCallback {
+                            override fun onSuccess(fileNameList: List<String>) {
+                                // 成功
+                                val msg = Message.obtain()
+                                msg.obj = fileNameList
+                                msg.what = 1
+                                handle.sendMessage(msg)
+                            }
 
-                    override fun onFailure(message: String) {
-                        Log.e("onFailure", message)
-                        val msg = Message.obtain()
-                        msg.obj = message
-                        handle.sendMessage(msg)
+                            override fun onFailure(message: String) {
+                                Log.e("onFailure", message)
+                                val msg = Message.obtain()
+                                msg.obj = message
+                                handle.sendMessage(msg)
+                            }
+                        })
                     }
-                })
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                val msg = Message.obtain()
-                msg.obj = "连接失败： " + e.message
-                handle.sendMessage(msg)
-            }
-        }).start()
-    }
+                    3 -> {
+                        bySmb?.deleteFile(et_fileName.text.toString(), object : OnOperationFileCallback {
+                            override fun onSuccess() {
+                                // 成功  只有在杀掉进程时才生效
+                                val msg = Message.obtain()
+                                msg.obj = "删除成功"
+                                handle.sendMessage(msg)
+                            }
 
-    private fun startUpload() {
-        if (progressDialog == null) {
-            progressDialog = ProgressDialog(this)
-            progressDialog?.setMessage("上传中...")
-        }
-        progressDialog?.show()
-        /**
-         * 异步线程
-         */
-        Thread(Runnable {
-            try {
-
-                val bySmb = BySMB.with()
-                    .setConfig(
-                        et_ip.text.toString(),
-                        et_username.text.toString(),
-                        et_password.text.toString(),
-                        et_foldName.text.toString()
-                    )
-                    .setReadTimeOut(60)
-                    .setSoTimeOut(180)
-                    .build()
-
-                val writeStringToFile = writeStringToFile(
-                    instance,
-                    et_content.text.toString(),
-                    et_fileName.text.toString()
-                )
-                bySmb?.writeToFile(writeStringToFile, object : OnUploadFileCallback {
-
-                    override fun onSuccess() {
-                        // 成功
-                        val msg = Message.obtain()
-                        msg.obj = "成功"
-                        handle.sendMessage(msg)
+                            override fun onFailure(message: String) {
+                                Log.e("onFailure", message)
+                                val msg = Message.obtain()
+                                msg.obj = message
+                                handle.sendMessage(msg)
+                            }
+                        })
                     }
-
-                    override fun onFailure(message: String) {
-                        Log.e("onFailure", message)
-                        val msg = Message.obtain()
-                        msg.obj = message
-                        handle.sendMessage(msg)
-                    }
-
-                })
+                }
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
                 val msg = Message.obtain()
@@ -181,11 +175,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * 在本地生成文件
      * */
-    private fun writeStringToFile(
-        context: Activity,
-        content: String,
-        writeFileName: String
-    ): File? {
+    private fun writeStringToFile(context: Activity, content: String, writeFileName: String): File? {
         var file: File? = null
         try {
             file = File(context.filesDir, writeFileName)

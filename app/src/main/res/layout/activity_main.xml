@@ -72,7 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="10dp"
         android:background="@color/purple_500"
-        android:text="发送"
+        android:text="写入"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_fileName" />
@@ -111,5 +111,16 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_read" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/tv_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:background="@color/purple_500"
+        android:text="删除文件"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_file_list" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
