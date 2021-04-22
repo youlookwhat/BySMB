@@ -6,18 +6,18 @@ import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
+import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.share.DiskShare
 import org.apache.log4j.BasicConfigurator
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.io.File
-import java.io.FileInputStream
+import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class BySMB(private val builder: Builder) {
 
     private var connectShare: DiskShare? = null
+    private var connection: Connection? = null
+
     fun init() {
         val config = SmbConfig.builder()
                 // 设置读取超时
@@ -29,10 +29,10 @@ class BySMB(private val builder: Builder) {
                 .build()
 
         val client = SMBClient(config)
-        val connect = client.connect(builder.ip)
+        connection = client.connect(builder.ip)
         val authContext = AuthenticationContext(builder.username, builder.password.toCharArray(), null)
-        val session = connect.authenticate(authContext)
-        connectShare = session.connectShare(builder.folderName) as DiskShare?
+        val session = connection?.authenticate(authContext)
+        connectShare = session?.connectShare(builder.folderName) as DiskShare?
         if (connectShare == null) throw Exception("请检查文件夹名称")
     }
 
@@ -50,13 +50,15 @@ class BySMB(private val builder: Builder) {
         }
         var inputStream: BufferedInputStream? = null
         var outputStream: BufferedOutputStream? = null
+        var openFile: com.hierynomus.smbj.share.File? = null
         try {
             inputStream = BufferedInputStream(FileInputStream(inputFile))
-            val openFile = connectShare!!.openFile(
+            openFile = connectShare!!.openFile(
                     inputFile.name,
                     EnumSet.of(AccessMask.GENERIC_WRITE), null,
                     SMB2ShareAccess.ALL,
-                    SMB2CreateDisposition.FILE_CREATE, null
+                    // FILE_OVERWRITE_IF 可覆盖；FILE_CREATE 只能新建
+                    SMB2CreateDisposition.FILE_OVERWRITE_IF, null
             )
             outputStream = BufferedOutputStream(openFile.outputStream)
 
@@ -79,7 +81,11 @@ class BySMB(private val builder: Builder) {
             try {
                 outputStream?.flush()
                 inputStream?.close()
-            } catch (e: java.lang.Exception) {
+                // 需要调用close，不然删除会失效
+                openFile?.close()
+                connectShare?.close()
+                connection?.close()
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
@@ -137,6 +143,15 @@ class BySMB(private val builder: Builder) {
         } catch (e: Exception) {
             e.printStackTrace()
             callback.onFailure(e.message ?: "删除失败")
+        } finally {
+            try {
+                connectShare?.close()
+                connectShare = null
+                connection = null
+                connection?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -178,7 +193,7 @@ class BySMB(private val builder: Builder) {
                 return this
             }
 
-            fun build(): BySMB? {
+            fun build(): BySMB {
                 val bySMB = BySMB(this)
                 bySMB.init()
                 return bySMB

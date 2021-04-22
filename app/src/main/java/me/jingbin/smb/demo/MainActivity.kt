@@ -35,16 +35,15 @@ class MainActivity : AppCompatActivity() {
                     if (msg.what == 1) {
                         // 读取文件列表成功
                         val msgContent = msg.obj
-                        val list = msgContent as List<String>
+                        val list = msgContent as List<*>
                         activity.tv_file_list.text = list.toString()
                     } else {
                         val msgContent = msg.obj
                         Log.e("handleMessage", msgContent.toString())
                         activity.tv_log.text = msgContent.toString()
-                        if (msgContent.toString().contains("连接失败")) {
-                            Toast.makeText(activity.instance, "连接失败", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT).show()
+                        if (msg.what == 2) {
+                            activity.operation(2)
                         }
                     }
                 }
@@ -70,8 +69,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    var bySmb: BySMB? = null
-
     /**增加 查看 删除*/
     private fun operation(state: Int) {
         if (progressDialog == null) {
@@ -88,18 +85,16 @@ class MainActivity : AppCompatActivity() {
          */
         Thread(Runnable {
             try {
-                if (bySmb == null) {
-                    bySmb = BySMB.with()
-                            .setConfig(
-                                    et_ip.text.toString(),
-                                    et_username.text.toString(),
-                                    et_password.text.toString(),
-                                    et_foldName.text.toString()
-                            )
-                            .setReadTimeOut(60)
-                            .setSoTimeOut(180)
-                            .build()
-                }
+                val bySmb = BySMB.with()
+                        .setConfig(
+                                et_ip.text.toString(),
+                                et_username.text.toString(),
+                                et_password.text.toString(),
+                                et_foldName.text.toString()
+                        )
+                        .setReadTimeOut(60)
+                        .setSoTimeOut(180)
+                        .build()
 
                 when (state) {
                     1 -> {
@@ -109,12 +104,13 @@ class MainActivity : AppCompatActivity() {
                                 et_fileName.text.toString()
                         )
 
-                        bySmb?.writeToFile(writeStringToFile, object : OnOperationFileCallback {
+                        bySmb.writeToFile(writeStringToFile, object : OnOperationFileCallback {
 
                             override fun onSuccess() {
                                 // 成功
                                 val msg = Message.obtain()
                                 msg.obj = "成功"
+                                msg.what = 2
                                 handle.sendMessage(msg)
                             }
 
@@ -128,7 +124,8 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
                     2 -> {
-                        bySmb?.listShareFileName("", "*.txt", object : OnReadFileListNameCallback {
+                        bySmb.listShareFileName(object : OnReadFileListNameCallback {
+                            //                        bySmb?.listShareFileName("", "*.txt", object : OnReadFileListNameCallback {
                             override fun onSuccess(fileNameList: List<String>) {
                                 // 成功
                                 val msg = Message.obtain()
@@ -146,11 +143,12 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
                     3 -> {
-                        bySmb?.deleteFile(et_fileName.text.toString(), object : OnOperationFileCallback {
+                        bySmb.deleteFile(et_fileName.text.toString(), object : OnOperationFileCallback {
                             override fun onSuccess() {
                                 // 成功  只有在杀掉进程时才生效
                                 val msg = Message.obtain()
                                 msg.obj = "删除成功"
+                                msg.what = 2
                                 handle.sendMessage(msg)
                             }
 
