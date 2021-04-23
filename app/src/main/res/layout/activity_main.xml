@@ -12,6 +12,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="ip"
+        android:imeOptions="actionNext"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -22,6 +24,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="用户名"
+        android:imeOptions="actionNext"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_ip" />
@@ -32,6 +36,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="密码"
+        android:imeOptions="actionNext"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_username" />
@@ -42,6 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="文件夹名称"
+        android:imeOptions="actionNext"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_password" />
@@ -52,6 +60,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="需要保存的内容"
+        android:imeOptions="actionNext"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_foldName" />
@@ -62,6 +71,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:hint="保存的文件名"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_content" />
@@ -69,9 +80,9 @@
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/tv_send"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginStart="10dp"
-        android:background="@color/purple_500"
+        android:background="@drawable/share_button_bg"
         android:text="写入"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
@@ -94,8 +105,10 @@
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/tv_read"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@color/purple_500"
+        android:layout_height="40dp"
+        android:background="@drawable/share_button_bg"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:text="查看文件列表"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -130,9 +143,9 @@
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/tv_delete"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginRight="10dp"
-        android:background="@color/purple_500"
+        android:background="@drawable/share_button_bg"
         android:text="删除文件"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"

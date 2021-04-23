@@ -32,18 +32,22 @@ class MainActivity : AppCompatActivity() {
                 val activity = mWeakReference?.get()
                 activity?.let {
                     activity.progressDialog?.hide()
-                    if (msg.what == 1) {
-                        // 读取文件列表成功
-                        val msgContent = msg.obj
-                        val list = msgContent as List<*>
-                        activity.tv_file_list.text = list.toString()
-                    } else {
-                        val msgContent = msg.obj
-                        Log.e("handleMessage", msgContent.toString())
-                        activity.tv_log.text = msgContent.toString()
-                        Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT).show()
-                        if (msg.what == 2) {
+                    when (msg.what) {
+                        1 -> {
+                            // 读取文件列表成功
+                            val list = msg.obj as List<*>
+                            activity.tv_file_list.text = list.toString()
+                        }
+                        2 -> {
+                            // 写入或删除成功后再次读取
+                            activity.tv_log.text = msg.obj.toString()
                             activity.operation(2)
+                        }
+                        else -> {
+                            // 失败
+                            val msgContent = msg.obj
+                            activity.tv_log.text = msgContent.toString()
+                            Toast.makeText(activity.instance, msgContent.toString(), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -63,9 +67,9 @@ class MainActivity : AppCompatActivity() {
         et_fileName.setText(SpUtil.getString("contentFileName"))
 
         handle = MyHandle(this)
-        tv_send.setOnClickListener { operation(1) }
-        tv_read.setOnClickListener { operation(2) }
-        tv_delete.setOnClickListener { operation(3) }
+        tv_send.setOnClickListener { operation(1); saveEditValue() }
+        tv_read.setOnClickListener { operation(2); saveEditValue() }
+        tv_delete.setOnClickListener { operation(3); saveEditValue() }
 
     }
 
@@ -103,19 +107,18 @@ class MainActivity : AppCompatActivity() {
                                 et_content.text.toString(),
                                 et_fileName.text.toString()
                         )
-
+                        // 写入
                         bySmb.writeToFile(writeStringToFile, object : OnOperationFileCallback {
 
                             override fun onSuccess() {
                                 // 成功
                                 val msg = Message.obtain()
-                                msg.obj = "成功"
+                                msg.obj = "写入成功"
                                 msg.what = 2
                                 handle.sendMessage(msg)
                             }
 
                             override fun onFailure(message: String) {
-                                Log.e("onFailure", message)
                                 val msg = Message.obtain()
                                 msg.obj = message
                                 handle.sendMessage(msg)
@@ -124,8 +127,8 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
                     2 -> {
+                        // 读取 ("", "*.txt", callback)
                         bySmb.listShareFileName(object : OnReadFileListNameCallback {
-                            //                        bySmb?.listShareFileName("", "*.txt", object : OnReadFileListNameCallback {
                             override fun onSuccess(fileNameList: List<String>) {
                                 // 成功
                                 val msg = Message.obtain()
@@ -135,7 +138,6 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             override fun onFailure(message: String) {
-                                Log.e("onFailure", message)
                                 val msg = Message.obtain()
                                 msg.obj = message
                                 handle.sendMessage(msg)
@@ -143,9 +145,9 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
                     3 -> {
+                        // 删除
                         bySmb.deleteFile(et_fileName.text.toString(), object : OnOperationFileCallback {
                             override fun onSuccess() {
-                                // 成功  只有在杀掉进程时才生效
                                 val msg = Message.obtain()
                                 msg.obj = "删除成功"
                                 msg.what = 2
@@ -153,7 +155,6 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             override fun onFailure(message: String) {
-                                Log.e("onFailure", message)
                                 val msg = Message.obtain()
                                 msg.obj = message
                                 handle.sendMessage(msg)
@@ -190,6 +191,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
+        saveEditValue()
+    }
+
+    private fun saveEditValue() {
         SpUtil.putString("ip", et_ip.text.toString())
         SpUtil.putString("username", et_username.text.toString())
         SpUtil.putString("password", et_password.text.toString())
