@@ -2,20 +2,24 @@ package me.jingbin.smb.demo
 
 import android.app.Activity
 import android.app.ProgressDialog
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import me.jingbin.smb.BySMB
-import me.jingbin.smb.OnReadFileListNameCallback
 import me.jingbin.smb.OnOperationFileCallback
+import me.jingbin.smb.OnReadFileListNameCallback
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintStream
 import java.lang.ref.WeakReference
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -201,5 +205,25 @@ class MainActivity : AppCompatActivity() {
         SpUtil.putString("foldName", et_foldName.text.toString())
         SpUtil.putString("content", et_content.text.toString())
         SpUtil.putString("contentFileName", et_fileName.text.toString())
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.actionbar_about -> {
+                try {
+                    val issuesUrl: Uri = Uri.parse("https://github.com/youlookwhat/BySMB")
+                    val intent = Intent(Intent.ACTION_VIEW, issuesUrl)
+                    startActivity(intent)
+                } catch (e: java.lang.Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }
