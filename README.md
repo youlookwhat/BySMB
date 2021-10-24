@@ -1,6 +1,6 @@
 # BySMB [![](https://jitpack.io/v/youlookwhat/BySMB.svg)](https://jitpack.io/#youlookwhat/BySMB)
 
-通过 SMB(Server Message Block)，实现设备(Android)给电脑传输数据。
+通过 SMB(Server Message Block)，实现手机(Android)给电脑传输数据。
 
 ### 硬件条件
  -  手机和电脑连接到同一局域网！
