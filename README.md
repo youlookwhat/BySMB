@@ -2,6 +2,7 @@
 
 通过 SMB(Server Message Block)，实现手机(Android)给电脑传输数据。
 
+对应文章：[Android SMB 简单几步实现手机给电脑传输数据](https://juejin.cn/post/7022879681892319239)
 
 ### 1.前提条件
 - 手机和电脑连接到同一局域网
