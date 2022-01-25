@@ -31,32 +31,34 @@ android {
     }
 
     //签名 其他smb
-    signingConfigs {
-        release {
-            storeFile file("./bysmb.jks")
-            storePassword "bysmb2022"
-            keyAlias "bysmb"
-            keyPassword "bysmb2022"
-        }
-    }
-    buildTypes {
-        release {
-            // 混淆
-            minifyEnabled false
-            // Zipalign优化
-            zipAlignEnabled false
-            // 移除无用的resource文件
-            shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
-        }
-
-        debug {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
+//    signingConfigs {
+//        release {
+//            storeFile file("./bysmb.jks")
+//            storePassword "bysmb2021"
+//            keyAlias "bysmb"
+//            keyPassword "bysmb2021"
+//            v1SigningEnabled true
+//            v2SigningEnabled true
+//        }
+//    }
+//    buildTypes {
+//        release {
+//            // 混淆
+//            minifyEnabled false
+//            // Zipalign优化
+//            zipAlignEnabled false
+//            // 移除无用的resource文件
+//            shrinkResources false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            signingConfig signingConfigs.release
+//        }
+//
+//        debug {
+////            signingConfig signingConfigs.release
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//        }
+//    }
 }
 
 dependencies {
