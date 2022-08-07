@@ -157,9 +157,13 @@ class BySMB(private val builder: Builder) {
 
     companion object {
 
+
         class Builder {
+            @JvmField
             var readTimeOut: Long = 60L
+            @JvmField
             var writeTimeOut: Long = 60L
+            @JvmField
             var soTimeOut: Long = 0L
             var ip: String = ""
             var username: String = ""
@@ -200,11 +204,13 @@ class BySMB(private val builder: Builder) {
             }
         }
 
+        @JvmStatic
         fun with(): Builder {
             return Builder()
         }
 
         /**需要先初始化*/
+        @JvmStatic
         fun initProperty(soTimeout: String = "60000", responseTimeout: String = "30000") {
             System.setProperty("jcifs.smb.client.dfs.disabled", "true")
             System.setProperty("jcifs.smb.client.soTimeout", soTimeout)

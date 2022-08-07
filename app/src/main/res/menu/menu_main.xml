@@ -8,4 +8,10 @@
         android:title="关于"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/actionbar_java"
+        android:orderInCategory="90"
+        android:title="Java版"
+        app:showAsAction="always" />
+
 </menu>

@@ -14,7 +14,7 @@ class App : MultiDexApplication() {
         super.onCreate()
         instance = this
 
-        // 初始化
-        BySMB.initProperty()
+        // 可直接在Activity里初始化
+//        BySMB.initProperty()
     }
 }

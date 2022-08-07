@@ -27,6 +27,27 @@ class MainActivity : AppCompatActivity() {
     private lateinit var handle: MyHandle
     private var progressDialog: ProgressDialog? = null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        // 可直接在Activity里初始化
+        BySMB.initProperty()
+
+        et_ip.setText(SpUtil.getString("ip"))
+        et_username.setText(SpUtil.getString("username"))
+        et_password.setText(SpUtil.getString("password"))
+        et_foldName.setText(SpUtil.getString("foldName"))
+        et_content.setText(SpUtil.getString("content"))
+        et_fileName.setText(SpUtil.getString("contentFileName"))
+
+        handle = MyHandle(this)
+        tv_send.setOnClickListener { operation(1); saveEditValue() }
+        tv_read.setOnClickListener { operation(2); saveEditValue() }
+        tv_delete.setOnClickListener { operation(3); saveEditValue() }
+
+    }
+
     companion object {
         class MyHandle(activity: MainActivity) : Handler() {
 
@@ -59,24 +80,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        et_ip.setText(SpUtil.getString("ip"))
-        et_username.setText(SpUtil.getString("username"))
-        et_password.setText(SpUtil.getString("password"))
-        et_foldName.setText(SpUtil.getString("foldName"))
-        et_content.setText(SpUtil.getString("content"))
-        et_fileName.setText(SpUtil.getString("contentFileName"))
-
-        handle = MyHandle(this)
-        tv_send.setOnClickListener { operation(1); saveEditValue() }
-        tv_read.setOnClickListener { operation(2); saveEditValue() }
-        tv_delete.setOnClickListener { operation(3); saveEditValue() }
-
-    }
-
     /**增加 查看 删除*/
     private fun operation(state: Int) {
         if (progressDialog == null) {
@@ -106,6 +109,7 @@ class MainActivity : AppCompatActivity() {
 
                 when (state) {
                     1 -> {
+                        // 生成文件
                         val writeStringToFile = writeStringToFile(
                                 instance,
                                 et_content.text.toString(),
@@ -222,6 +226,9 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: java.lang.Exception) {
                     e.printStackTrace()
                 }
+            }
+            R.id.actionbar_java -> {
+                startActivity(Intent(this, BySMBJavaActivity::class.java))
             }
         }
         return super.onOptionsItemSelected(item)
