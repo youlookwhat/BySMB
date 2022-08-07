@@ -8,7 +8,6 @@ import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.share.DiskShare
-import org.apache.log4j.BasicConfigurator
 import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -215,7 +214,6 @@ class BySMB(private val builder: Builder) {
             System.setProperty("jcifs.smb.client.dfs.disabled", "true")
             System.setProperty("jcifs.smb.client.soTimeout", soTimeout)
             System.setProperty("jcifs.smb.client.responseTimeout", responseTimeout)
-            BasicConfigurator.configure()
         }
     }
 
