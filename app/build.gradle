@@ -37,9 +37,9 @@ android {
 //    signingConfigs {
 //        release {
 //            storeFile file("./bysmb.jks")
-//            storePassword "bysmb2021"
+//            storePassword "bysmb2022"
 //            keyAlias "bysmb"
-//            keyPassword "bysmb2021"
+//            keyPassword "bysmb2022"
 //            v1SigningEnabled true
 //            v2SigningEnabled true
 //        }
