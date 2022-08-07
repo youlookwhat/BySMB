@@ -29,16 +29,16 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.youlookwhat:BySMB:1.1.0'
+    implementation 'com.github.youlookwhat:BySMB:1.2.5'
 }
 ```
 2).开启联网权限
-```kotlon
+```kotlin
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-3).在`Application`初始化
-``` kotlon
+3).在使用时初始化，`Activity`或`Application`中
+``` kotlin
 BySMB.initProperty()
 ```
 4).得到SMB实例
