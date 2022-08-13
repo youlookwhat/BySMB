@@ -4,6 +4,8 @@
 
 对应文章：[Android SMB 简单几步实现手机给电脑传输数据](https://juejin.cn/post/7022879681892319239)
 
+Java版本：[BySMBJavaActivity.java](https://github.com/youlookwhat/BySMB/blob/main/app/src/main/java/me/jingbin/smb/demo/BySMBJavaActivity.java)
+
 ### 1.前提条件
 - 手机和电脑连接到同一局域网
 - 电脑需要设置用户名和密码
